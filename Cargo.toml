@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.49", features = ["derive"] }
+keyring = { version = "3.6.3", features = ["apple-native", "linux-native-async-persistent", "tokio", "crypto-rust"] }
