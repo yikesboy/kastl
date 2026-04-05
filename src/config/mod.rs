@@ -1,27 +1,12 @@
+mod error;
+
+use error::ConfigError;
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
 use std::fs::{create_dir_all, read_to_string, remove_file, write};
 
 const SERVICE_IDENTIFIER: &str = "kastl-cli";
 const CONFIG_FILE_NAME: &str = "config.toml";
-
-#[derive(Debug, thiserror::Error)]
-pub enum ConfigError {
-    #[error("could not determine config directory")]
-    NoConfigDir,
-
-    #[error("could not convert config struct to toml: {0}")]
-    UnableToConvertToToml(toml::ser::Error),
-
-    #[error("could not convert toml to config struct: {0}")]
-    UnableToConvertFromToml(toml::de::Error),
-
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error),
-
-    #[error("keyring error: {0}")]
-    Keyring(#[from] keyring::Error),
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
