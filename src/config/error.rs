@@ -4,10 +4,10 @@ pub enum ConfigError {
     NoConfigDir,
 
     #[error("could not convert config struct to toml: {0}")]
-    UnableToConvertToToml(toml::ser::Error),
+    UnableToConvertToToml(#[from] toml::ser::Error),
 
     #[error("could not convert toml to config struct: {0}")]
-    UnableToConvertFromToml(toml::de::Error),
+    UnableToConvertFromToml(#[from] toml::de::Error),
 
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
