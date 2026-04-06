@@ -28,6 +28,14 @@ pub struct Secret {
     pub value: String,
 }
 
+pub trait ConfigProvider {
+    fn save_config(&self, config: &Config) -> Result<(), ConfigError>;
+    fn load_config(&self) -> Result<Config, ConfigError>;
+    fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError>;
+    fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError>;
+    fn delete_all(&self) -> Result<(), ConfigError>;
+}
+
 pub struct ConfigService<S: SecretStorage, C: ConfigStorage> {
     secret_storage: S,
     config_storage: C,
@@ -40,24 +48,26 @@ impl<S: SecretStorage, C: ConfigStorage> ConfigService<S, C> {
             config_storage,
         }
     }
+}
 
-    pub fn save_config(&self, config: &Config) -> Result<(), ConfigError> {
+impl<S: SecretStorage, C: ConfigStorage> ConfigProvider for ConfigService<S, C> {
+    fn save_config(&self, config: &Config) -> Result<(), ConfigError> {
         self.config_storage.save(&config)
     }
 
-    pub fn load_config(&self) -> Result<Config, ConfigError> {
+    fn load_config(&self) -> Result<Config, ConfigError> {
         self.config_storage.load()
     }
 
-    pub fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError> {
+    fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError> {
         self.secret_storage.save(secret)
     }
 
-    pub fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError> {
+    fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError> {
         self.secret_storage.load(secret_identifier)
     }
 
-    pub fn delete_all(&self) -> Result<(), ConfigError> {
+    fn delete_all(&self) -> Result<(), ConfigError> {
         self.secret_storage.delete_all()?;
         self.config_storage.delete()?;
         Ok(())
