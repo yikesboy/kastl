@@ -28,12 +28,12 @@ pub struct Secret {
     pub value: String,
 }
 
-pub struct ConfigManager<S: SecretStorage, C: ConfigStorage> {
+pub struct ConfigService<S: SecretStorage, C: ConfigStorage> {
     secret_storage: S,
     config_storage: C,
 }
 
-impl<S: SecretStorage, C: ConfigStorage> ConfigManager<S, C> {
+impl<S: SecretStorage, C: ConfigStorage> ConfigService<S, C> {
     pub fn new(secret_storage: S, config_storage: C) -> Self {
         Self {
             secret_storage,
