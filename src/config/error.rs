@@ -14,4 +14,7 @@ pub enum ConfigError {
 
     #[error("keyring error: {0}")]
     Keyring(#[from] keyring::Error),
+
+    #[error("background task failed: {0}")]
+    TaskJoin(#[from] tokio::task::JoinError),
 }

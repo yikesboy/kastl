@@ -1,4 +1,4 @@
-mod error;
+pub mod error;
 pub mod secret;
 pub mod storage;
 
@@ -13,16 +13,15 @@ pub(crate) const SERVICE_IDENTIFIER: &str = "kastl-cli";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub internal_url: String,
-    pub username: String,
 }
 
-#[derive(Debug, strum::Display, strum::EnumIter)]
+#[derive(Debug, Clone, strum::Display, strum::EnumIter)]
 #[strum(serialize_all = "snake_case")]
 pub enum SecretIdentifier {
-    Password,
+    BearerToken,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Secret {
     pub identifier: SecretIdentifier,
     pub value: String,
@@ -31,9 +30,9 @@ pub struct Secret {
 pub trait ConfigProvider {
     fn save_config(&self, config: &Config) -> Result<(), ConfigError>;
     fn load_config(&self) -> Result<Config, ConfigError>;
-    fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError>;
-    fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError>;
-    fn delete_all(&self) -> Result<(), ConfigError>;
+    async fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError>;
+    async fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError>;
+    async fn delete_all(&self) -> Result<(), ConfigError>;
 }
 
 pub struct ConfigService<S: SecretStorage, C: ConfigStorage> {
@@ -59,16 +58,16 @@ impl<S: SecretStorage, C: ConfigStorage> ConfigProvider for ConfigService<S, C> 
         self.config_storage.load()
     }
 
-    fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError> {
-        self.secret_storage.save(secret)
+    async fn save_secret(&self, secret: &Secret) -> Result<(), ConfigError> {
+        self.secret_storage.save(secret).await
     }
 
-    fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError> {
-        self.secret_storage.load(secret_identifier)
+    async fn load_secret(&self, secret_identifier: SecretIdentifier) -> Result<Secret, ConfigError> {
+        self.secret_storage.load(secret_identifier).await
     }
 
-    fn delete_all(&self) -> Result<(), ConfigError> {
-        self.secret_storage.delete_all()?;
+    async fn delete_all(&self) -> Result<(), ConfigError> {
+        self.secret_storage.delete_all().await?;
         self.config_storage.delete()?;
         Ok(())
     }
