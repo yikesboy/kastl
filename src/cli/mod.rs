@@ -1,5 +1,5 @@
-mod auth;
-mod error;
+pub mod auth;
+pub mod error;
 
 use clap::{Parser, Subcommand};
 
@@ -26,7 +26,6 @@ pub enum Commands {
 pub enum AuthCommands {
     Login,
     Logout,
-    Status,
 }
 
 #[derive(Subcommand, Debug)]
