@@ -1,5 +1,5 @@
-use reqwest::StatusCode;
 use crate::config::error::ConfigError;
+use reqwest::StatusCode;
 
 #[derive(Debug, thiserror::Error)]
 pub enum HaError {
@@ -13,10 +13,7 @@ pub enum HaError {
     },
 
     #[error("HTTP error. Status: {status}, Body: {body}")]
-    Http {
-        status: StatusCode,
-        body: String,
-    },
+    Http { status: StatusCode, body: String },
 
     #[error("Unauthorized.")]
     Unauthorized,
