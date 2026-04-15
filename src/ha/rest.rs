@@ -1,7 +1,8 @@
 use crate::ha::error::HaError;
 use crate::ha::model::{
-    Components, Events, HaConfig, HaStatusMessage, HistoryOptions, HistoryQuery, HistoryResponse,
-    LogbookOptions, LogbookResponse, Services, StateObject, StatesResponse,
+    Components, EventData, Events, HaConfig, HaMessage, HistoryOptions, HistoryQuery,
+    HistoryResponse, LogbookOptions, LogbookResponse, Services, StateObject, StateUpdateRequest,
+    StateUpdateResponse, StatesResponse,
 };
 use crate::ha::routes::{
     COMPONENTS, CONFIG, ERROR_LOG, EVENTS, HISTORY, LOGBOOK, SERVICES, STATES,
@@ -19,8 +20,8 @@ pub struct HaRestClient {
 }
 
 impl HaRestClient {
-    pub async fn api_status(&self) -> Result<HaStatusMessage, HaError> {
-        self.get::<(), HaStatusMessage>("", None).await
+    pub async fn api_status(&self) -> Result<HaMessage, HaError> {
+        self.get::<(), HaMessage>("", None).await
     }
 
     pub async fn get_config(&self) -> Result<HaConfig, HaError> {
@@ -89,6 +90,24 @@ impl HaRestClient {
 
     pub async fn get_error_log(&self) -> Result<String, HaError> {
         self.get::<(), String>(ERROR_LOG, None).await
+    }
+
+    pub async fn update_or_create_state(
+        &self,
+        state: StateUpdateRequest,
+        entity_id: String,
+    ) -> Result<StateUpdateResponse, HaError> {
+        let path = format!("{STATES}/{entity_id}");
+        self.post(&path, state).await
+    }
+
+    pub async fn send_event(
+        &self,
+        event_type: String,
+        event_data: EventData,
+    ) -> Result<HaMessage, HaError> {
+        let path = format!("{}/{}", EVENTS, event_type);
+        self.post(&path, event_data).await
     }
 }
 
