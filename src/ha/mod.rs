@@ -8,12 +8,12 @@ use error::HaError;
 use rest::HaRestClient;
 
 use crate::config::SecretIdentifier;
-use crate::ha::model::StateObject;
+use crate::ha::model::{EventData, StateObject, StateUpdateRequest, StateUpdateResponse};
 use crate::{
     config::ConfigProvider,
     ha::model::{
-        Components, Events, HaConfig, HaStatusMessage, HistoryOptions, HistoryResponse,
-        LogbookOptions, LogbookResponse, Services, StatesResponse,
+        Components, Events, HaConfig, HaMessage, HistoryOptions, HistoryResponse, LogbookOptions,
+        LogbookResponse, Services, StatesResponse,
     },
 };
 
@@ -37,7 +37,7 @@ impl HaClient {
         Ok(Self::new(config.internal_url, token.value))
     }
 
-    pub async fn api_status(&self) -> Result<HaStatusMessage, HaError> {
+    pub async fn api_status(&self) -> Result<HaMessage, HaError> {
         self.rest.api_status().await
     }
 
@@ -121,5 +121,21 @@ impl HaClient {
 
     pub async fn get_error_log(&self) -> Result<String, HaError> {
         self.rest.get_error_log().await
+    }
+
+    pub async fn update_or_create_state(
+        &self,
+        state: StateUpdateRequest,
+        entity_id: String,
+    ) -> Result<StateUpdateResponse, HaError> {
+        self.rest.update_or_create_state(state, entity_id).await
+    }
+
+    pub async fn send_event(
+        &self,
+        event_type: String,
+        event_data: EventData,
+    ) -> Result<HaMessage, HaError> {
+        self.rest.send_event(event_type, event_data).await
     }
 }
