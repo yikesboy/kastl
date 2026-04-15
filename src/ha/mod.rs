@@ -118,4 +118,8 @@ impl HaClient {
     pub async fn get_entity_state(&self, entity_id: String) -> Result<StateObject, HaError> {
         self.rest.get_entity_state(entity_id).await
     }
+
+    pub async fn get_error_log(&self) -> Result<String, HaError> {
+        self.rest.get_error_log().await
+    }
 }

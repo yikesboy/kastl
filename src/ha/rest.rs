@@ -1,6 +1,11 @@
 use crate::ha::error::HaError;
-use crate::ha::model::{Components, Events, HaConfig, HaStatusMessage, HistoryOptions, HistoryQuery, HistoryResponse, LogbookOptions, LogbookResponse, Services, StateObject, StatesResponse};
-use crate::ha::routes::{COMPONENTS, CONFIG, EVENTS, HISTORY, LOGBOOK, SERVICES, STATES};
+use crate::ha::model::{
+    Components, Events, HaConfig, HaStatusMessage, HistoryOptions, HistoryQuery, HistoryResponse,
+    LogbookOptions, LogbookResponse, Services, StateObject, StatesResponse,
+};
+use crate::ha::routes::{
+    COMPONENTS, CONFIG, ERROR_LOG, EVENTS, HISTORY, LOGBOOK, SERVICES, STATES,
+};
 use chrono::{DateTime, Utc};
 use reqwest::{Client, StatusCode};
 use serde::de::DeserializeOwned;
@@ -34,12 +39,17 @@ impl HaRestClient {
         self.get::<(), Services>(SERVICES, None).await
     }
 
-    pub async fn get_history(&self, timestamp: Option<DateTime<Utc>>, query: Option<&HistoryOptions>, entity_ids: Vec<String>) -> Result<HistoryResponse, HaError> {
+    pub async fn get_history(
+        &self,
+        timestamp: Option<DateTime<Utc>>,
+        query: Option<&HistoryOptions>,
+        entity_ids: Vec<String>,
+    ) -> Result<HistoryResponse, HaError> {
         if entity_ids.is_empty() {
-            return Err(HaError::MissingEntityId)
+            return Err(HaError::MissingEntityId);
         }
 
-        let query_params = if let Some(query) = query { 
+        let query_params = if let Some(query) = query {
             HistoryQuery::from_query_options(query, entity_ids)
         } else {
             HistoryQuery::from_default(entity_ids)
@@ -50,16 +60,22 @@ impl HaRestClient {
             path = format!("{path}/{}", timestamp);
         }
 
-        self.get::<HistoryQuery, HistoryResponse>(&path, Some(&query_params)).await
+        self.get::<HistoryQuery, HistoryResponse>(&path, Some(&query_params))
+            .await
     }
 
-    pub async fn get_logbook(&self, timestamp: Option<DateTime<Utc>>, query: Option<&LogbookOptions>) -> Result<LogbookResponse, HaError> {
+    pub async fn get_logbook(
+        &self,
+        timestamp: Option<DateTime<Utc>>,
+        query: Option<&LogbookOptions>,
+    ) -> Result<LogbookResponse, HaError> {
         let mut path = LOGBOOK.to_owned();
         if let Some(timestamp) = timestamp {
             path = format!("{path}/{}", timestamp);
         }
 
-        self.get::<LogbookOptions, LogbookResponse>(&path, query).await
+        self.get::<LogbookOptions, LogbookResponse>(&path, query)
+            .await
     }
 
     pub async fn get_states(&self) -> Result<StatesResponse, HaError> {
@@ -69,6 +85,10 @@ impl HaRestClient {
     pub async fn get_entity_state(&self, entity_id: String) -> Result<StateObject, HaError> {
         let path = format!("{}/{}", STATES, entity_id);
         self.get::<(), StateObject>(&path, None).await
+    }
+
+    pub async fn get_error_log(&self) -> Result<String, HaError> {
+        self.get::<(), String>(ERROR_LOG, None).await
     }
 }
 
@@ -85,10 +105,12 @@ impl HaRestClient {
         format!("{}/api/{}", self.base_url, path)
     }
 
-    async fn get<Q: Serialize, T: DeserializeOwned>(&self, path: &str, query: Option<&Q>) -> Result<T, HaError> {
-        let mut request = self.client
-            .get(self.url(path))
-            .bearer_auth(&self.token);
+    async fn get<Q: Serialize, T: DeserializeOwned>(
+        &self,
+        path: &str,
+        query: Option<&Q>,
+    ) -> Result<T, HaError> {
+        let mut request = self.client.get(self.url(path)).bearer_auth(&self.token);
 
         if let Some(query) = query {
             request = request.query(query);
@@ -104,7 +126,8 @@ impl HaRestClient {
         path: &str,
         body: B,
     ) -> Result<T, HaError> {
-        let response = self.client
+        let response = self
+            .client
             .post(self.url(path))
             .bearer_auth(&self.token)
             .json(&body)
@@ -114,7 +137,9 @@ impl HaRestClient {
         Self::handle_response(response).await
     }
 
-    async fn handle_response<T: DeserializeOwned>(response: reqwest::Response) -> Result<T, HaError> {
+    async fn handle_response<T: DeserializeOwned>(
+        response: reqwest::Response,
+    ) -> Result<T, HaError> {
         let status_code = response.status();
         let text = response.text().await?;
 
@@ -123,7 +148,10 @@ impl HaRestClient {
         }
 
         if !status_code.is_success() {
-            return Err(HaError::Http { status: status_code, body: text });
+            return Err(HaError::Http {
+                status: status_code,
+                body: text,
+            });
         }
 
         from_str::<T>(&text).map_err(|e| HaError::Decode {
