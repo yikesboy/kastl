@@ -23,4 +23,7 @@ pub enum HaError {
 
     #[error("config error: {0}")]
     ConfigError(#[from] ConfigError),
+
+    #[error("entityid missing, need atleast one")]
+    MissingEntityId,
 }
