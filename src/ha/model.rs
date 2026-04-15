@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
+use inquire::ui::Attributes;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HaStatusMessage {
+pub struct HaMessage {
     pub message: String,
 }
 
@@ -155,3 +156,20 @@ pub struct StateObject {
     pub last_changed: DateTime<Utc>,
     pub state: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StateUpdateRequest {
+    pub state: String,
+    pub attributes: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StateUpdateResponse {
+    pub attributes: HashMap<String, String>,
+    pub entity_id: String,
+    pub last_changed: DateTime<Utc>,
+    pub last_updated: DateTime<Utc>,
+    pub state: String,
+}
+
+pub type EventData = HashMap<String, String>;
