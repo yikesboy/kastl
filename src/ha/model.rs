@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use inquire::ui::Attributes;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HaMessage {
@@ -151,7 +152,7 @@ pub struct StatesResponse(pub Vec<StateObject>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateObject {
-    pub attributes: HashMap<String, String>,
+    pub attributes: HashMap<String, Value>,
     pub entity_id: String,
     pub last_changed: DateTime<Utc>,
     pub state: String,
@@ -160,12 +161,12 @@ pub struct StateObject {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateUpdateRequest {
     pub state: String,
-    pub attributes: HashMap<String, String>,
+    pub attributes: HashMap<String, Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateUpdateResponse {
-    pub attributes: HashMap<String, String>,
+    pub attributes: HashMap<String, Value>,
     pub entity_id: String,
     pub last_changed: DateTime<Utc>,
     pub last_updated: DateTime<Utc>,
@@ -173,3 +174,17 @@ pub struct StateUpdateResponse {
 }
 
 pub type EventData = HashMap<String, String>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomainServiceResponse(pub Vec<StateObject>);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ServiceData {
+    pub entity_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomainServiceReturnResponse {
+    pub changed_states: Vec<StateObject>,
+    pub service_response: HashMap<String, Value>,
+}
