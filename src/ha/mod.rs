@@ -3,12 +3,17 @@ mod model;
 mod rest;
 mod routes;
 
+use std::fmt::format;
+
 use chrono::{DateTime, Utc};
 use error::HaError;
 use rest::HaRestClient;
 
 use crate::config::SecretIdentifier;
-use crate::ha::model::{EventData, StateObject, StateUpdateRequest, StateUpdateResponse};
+use crate::ha::model::{
+    DomainServiceResponse, DomainServiceReturnResponse, EventData, ServiceData, StateObject,
+    StateUpdateRequest, StateUpdateResponse,
+};
 use crate::{
     config::ConfigProvider,
     ha::model::{
@@ -134,8 +139,30 @@ impl HaClient {
     pub async fn send_event(
         &self,
         event_type: String,
-        event_data: EventData,
+        event_data: Option<EventData>,
     ) -> Result<HaMessage, HaError> {
         self.rest.send_event(event_type, event_data).await
+    }
+
+    pub async fn call_domain_service(
+        &self,
+        domain: String,
+        service: String,
+        service_data: Option<ServiceData>,
+    ) -> Result<DomainServiceResponse, HaError> {
+        self.rest
+            .call_domain_service(domain, service, service_data)
+            .await
+    }
+
+    pub async fn call_domain_service_with_service_response(
+        &self,
+        domain: String,
+        service: String,
+        service_data: Option<ServiceData>,
+    ) -> Result<DomainServiceReturnResponse, HaError> {
+        self.rest
+            .call_domain_service_with_service_response(domain, service, service_data)
+            .await
     }
 }
