@@ -1,9 +1,10 @@
 use crate::{config::error::ConfigError, ha::error::HaError};
+use inquire::error::InquireError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
     #[error("inquire error: {0}")]
-    Inquire(#[from] inquire::error::InquireError),
+    Inquire(#[from] InquireError),
 
     #[error("Failed to save configuration.")]
     ConfigSave {
@@ -13,6 +14,12 @@ pub enum AppError {
 
     #[error("Failed to save secret.")]
     SecretSave {
+        #[source]
+        source: ConfigError,
+    },
+
+    #[error("Failed to delete config/secret.")]
+    ConfigDeleteAll {
         #[source]
         source: ConfigError,
     },
