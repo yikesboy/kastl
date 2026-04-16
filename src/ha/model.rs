@@ -1,17 +1,18 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use inquire::ui::Attributes;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use tabled::Tabled;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HaMessage {
     pub message: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tabled)]
 pub struct HaConfig {
+    #[tabled(display = "display_string_vec")]
     pub components: Vec<String>,
     pub config_dir: String,
     pub elevation: i64,
@@ -19,12 +20,14 @@ pub struct HaConfig {
     pub location_name: String,
     pub longitude: f64,
     pub time_zone: String,
+    #[tabled(skip)]
     pub unit_system: UnitSystem,
     pub version: String,
+    #[tabled(display = "display_string_vec")]
     pub whitelist_external_dirs: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tabled)]
 pub struct UnitSystem {
     pub length: String,
     pub mass: String,
@@ -187,4 +190,10 @@ pub struct ServiceData {
 pub struct DomainServiceReturnResponse {
     pub changed_states: Vec<StateObject>,
     pub service_response: HashMap<String, Value>,
+}
+
+/* DISPLAY HELPERS REMOVE FROM THIS FILE EVENTUALLY */
+
+fn display_string_vec(values: &[String]) -> String {
+    values.join(", ")
 }
