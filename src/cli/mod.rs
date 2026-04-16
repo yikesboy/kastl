@@ -1,10 +1,13 @@
 pub mod auth;
+pub mod config;
 pub mod error;
+pub mod util;
 
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
+#[command(subcommand_required = true, arg_required_else_help = true)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -16,32 +19,11 @@ pub enum Commands {
         #[command(subcommand)]
         command: AuthCommands,
     },
-    Entities {
-        #[command(subcommand)]
-        command: EntityCommands,
-    },
+    Config,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum AuthCommands {
     Login,
     Logout,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum EntityCommands {
-    List {
-        #[arg(long)]
-        domain: Option<String>,
-    },
-    Get {
-        entity_id: String,
-    },
-    Set {
-        entity_id: String,
-        state: String,
-    },
-    // Delete {
-    //     entity_id: String,
-    // },
 }
