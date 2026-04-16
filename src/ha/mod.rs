@@ -3,8 +3,6 @@ mod model;
 mod rest;
 mod routes;
 
-use std::fmt::format;
-
 use chrono::{DateTime, Utc};
 use error::HaError;
 use rest::HaRestClient;
