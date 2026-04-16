@@ -1,8 +1,10 @@
+use std::fmt::format;
+
 use crate::ha::error::HaError;
 use crate::ha::model::{
-    Components, EventData, Events, HaConfig, HaMessage, HistoryOptions, HistoryQuery,
-    HistoryResponse, LogbookOptions, LogbookResponse, Services, StateObject, StateUpdateRequest,
-    StateUpdateResponse, StatesResponse,
+    Components, DomainServiceResponse, DomainServiceReturnResponse, EventData, Events, HaConfig,
+    HaMessage, HistoryOptions, HistoryQuery, HistoryResponse, LogbookOptions, LogbookResponse,
+    ServiceData, Services, StateObject, StateUpdateRequest, StateUpdateResponse, StatesResponse,
 };
 use crate::ha::routes::{
     COMPONENTS, CONFIG, ERROR_LOG, EVENTS, HISTORY, LOGBOOK, SERVICES, STATES,
@@ -98,16 +100,38 @@ impl HaRestClient {
         entity_id: String,
     ) -> Result<StateUpdateResponse, HaError> {
         let path = format!("{STATES}/{entity_id}");
-        self.post(&path, state).await
+        self.post(&path, state, None::<&()>).await // TURBO c><(
     }
 
     pub async fn send_event(
         &self,
         event_type: String,
-        event_data: EventData,
+        event_data: Option<EventData>,
     ) -> Result<HaMessage, HaError> {
         let path = format!("{}/{}", EVENTS, event_type);
-        self.post(&path, event_data).await
+        self.post(&path, event_data, None::<&()>).await
+    }
+
+    pub async fn call_domain_service(
+        &self,
+        domain: String,
+        service: String,
+        service_data: Option<ServiceData>,
+    ) -> Result<DomainServiceResponse, HaError> {
+        let path = format!("{SERVICES}/{}/{}", domain, service);
+        self.post(&path, service_data, None::<&()>).await
+    }
+
+    pub async fn call_domain_service_with_service_response(
+        &self,
+        domain: String,
+        service: String,
+        service_data: Option<ServiceData>,
+    ) -> Result<DomainServiceReturnResponse, HaError> {
+        let path = format!("{SERVICES}/{}/{}", domain, service);
+        let query_param = ("return_response", true);
+
+        self.post(&path, service_data, Some(&query_param)).await
     }
 }
 
@@ -140,18 +164,23 @@ impl HaRestClient {
         Self::handle_response(response).await
     }
 
-    async fn post<B: Serialize, T: DeserializeOwned>(
+    async fn post<Q: Serialize, B: Serialize, T: DeserializeOwned>(
         &self,
         path: &str,
         body: B,
+        query: Option<&Q>,
     ) -> Result<T, HaError> {
-        let response = self
+        let mut request = self
             .client
             .post(self.url(path))
             .bearer_auth(&self.token)
-            .json(&body)
-            .send()
-            .await?;
+            .json(&body);
+
+        if let Some(query) = query {
+            request = request.query(query);
+        }
+
+        let response = request.send().await?;
 
         Self::handle_response(response).await
     }
