@@ -1,4 +1,4 @@
-mod dtos;
+pub mod dtos;
 pub mod error;
 mod rest;
 mod routes;
@@ -9,14 +9,15 @@ use rest::HaRestClient;
 
 use crate::config::SecretIdentifier;
 use crate::ha::dtos::{
-    DomainServiceResponse, DomainServiceReturnResponse, EventData, ServiceData, StateObject,
-    StateUpdateRequest, StateUpdateResponse,
+    HaDomainServiceResponse, HaDomainServiceReturnResponse, HaEventData, HaState,
+    HaStateUpdateRequest, HaStateUpdateResponse, ServiceData,
 };
 use crate::{
     config::ConfigProvider,
     ha::dtos::{
-        Components, Events, HaConfig, HaMessage, HistoryOptions, HistoryResponse, LogbookOptions,
-        LogbookResponse, Services, StatesResponse,
+        HaComponentsResponse, HaConfigResponse, HaEventsResponse, HaHistoryOptions,
+        HaHistoryResponse, HaLogbookOptions, HaLogbookResponse, HaMessageResponse,
+        HaServicesResponse, HaStatesResponse,
     },
 };
 
@@ -40,32 +41,32 @@ impl HaClient {
         Ok(Self::new(config.internal_url, token.value))
     }
 
-    pub async fn api_status(&self) -> Result<HaMessage, HaError> {
+    pub async fn api_status(&self) -> Result<HaMessageResponse, HaError> {
         self.rest.api_status().await
     }
 
-    pub async fn get_config(&self) -> Result<HaConfig, HaError> {
+    pub async fn get_config(&self) -> Result<HaConfigResponse, HaError> {
         self.rest.get_config().await
     }
 
-    pub async fn get_components(&self) -> Result<Components, HaError> {
+    pub async fn get_components(&self) -> Result<HaComponentsResponse, HaError> {
         self.rest.get_components().await
     }
 
-    pub async fn get_events(&self) -> Result<Events, HaError> {
+    pub async fn get_events(&self) -> Result<HaEventsResponse, HaError> {
         self.rest.get_events().await
     }
 
-    pub async fn get_services(&self) -> Result<Services, HaError> {
+    pub async fn get_services(&self) -> Result<HaServicesResponse, HaError> {
         self.rest.get_services().await
     }
 
     pub async fn get_history(
         &self,
         from: Option<DateTime<Utc>>,
-        query: Option<&HistoryOptions>,
+        query: Option<&HaHistoryOptions>,
         for_entities: Vec<String>,
-    ) -> Result<HistoryResponse, HaError> {
+    ) -> Result<HaHistoryResponse, HaError> {
         self.rest.get_history(from, query, for_entities).await
     }
 
@@ -74,8 +75,8 @@ impl HaClient {
         from: DateTime<Utc>,
         to: DateTime<Utc>,
         for_entities: Vec<String>,
-    ) -> Result<HistoryResponse, HaError> {
-        let options = HistoryOptions {
+    ) -> Result<HaHistoryResponse, HaError> {
+        let options = HaHistoryOptions {
             end_time: Some(to),
             minimal_response: false,
             no_attributes: false,
@@ -89,8 +90,8 @@ impl HaClient {
     pub async fn get_logbook(
         &self,
         from: Option<DateTime<Utc>>,
-        query: Option<&LogbookOptions>,
-    ) -> Result<LogbookResponse, HaError> {
+        query: Option<&HaLogbookOptions>,
+    ) -> Result<HaLogbookResponse, HaError> {
         self.rest.get_logbook(from, query).await
     }
 
@@ -98,27 +99,30 @@ impl HaClient {
         &self,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<LogbookResponse, HaError> {
-        let options = LogbookOptions {
+    ) -> Result<HaLogbookResponse, HaError> {
+        let options = HaLogbookOptions {
             entity: None,
             end_time: Some(to),
         };
         self.rest.get_logbook(Some(from), Some(&options)).await
     }
 
-    pub async fn get_entity_logbook(&self, entity_id: String) -> Result<LogbookResponse, HaError> {
-        let options = LogbookOptions {
+    pub async fn get_entity_logbook(
+        &self,
+        entity_id: String,
+    ) -> Result<HaLogbookResponse, HaError> {
+        let options = HaLogbookOptions {
             entity: Some(entity_id),
             end_time: None,
         };
         self.rest.get_logbook(None, Some(&options)).await
     }
 
-    pub async fn get_states(&self) -> Result<StatesResponse, HaError> {
+    pub async fn get_states(&self) -> Result<HaStatesResponse, HaError> {
         self.rest.get_states().await
     }
 
-    pub async fn get_entity_state(&self, entity_id: String) -> Result<StateObject, HaError> {
+    pub async fn get_entity_state(&self, entity_id: String) -> Result<HaState, HaError> {
         self.rest.get_entity_state(entity_id).await
     }
 
@@ -128,17 +132,17 @@ impl HaClient {
 
     pub async fn update_or_create_state(
         &self,
-        state: StateUpdateRequest,
+        state: HaStateUpdateRequest,
         entity_id: String,
-    ) -> Result<StateUpdateResponse, HaError> {
+    ) -> Result<HaStateUpdateResponse, HaError> {
         self.rest.update_or_create_state(state, entity_id).await
     }
 
     pub async fn send_event(
         &self,
         event_type: String,
-        event_data: Option<EventData>,
-    ) -> Result<HaMessage, HaError> {
+        event_data: Option<HaEventData>,
+    ) -> Result<HaMessageResponse, HaError> {
         self.rest.send_event(event_type, event_data).await
     }
 
@@ -147,7 +151,7 @@ impl HaClient {
         domain: String,
         service: String,
         service_data: Option<ServiceData>,
-    ) -> Result<DomainServiceResponse, HaError> {
+    ) -> Result<HaDomainServiceResponse, HaError> {
         self.rest
             .call_domain_service(domain, service, service_data)
             .await
@@ -158,7 +162,7 @@ impl HaClient {
         domain: String,
         service: String,
         service_data: Option<ServiceData>,
-    ) -> Result<DomainServiceReturnResponse, HaError> {
+    ) -> Result<HaDomainServiceReturnResponse, HaError> {
         self.rest
             .call_domain_service_with_service_response(domain, service, service_data)
             .await

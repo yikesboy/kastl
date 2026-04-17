@@ -1,17 +1,16 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 use tabled::Tabled;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HaMessage {
+pub struct HaMessageResponse {
     pub message: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Tabled)]
-pub struct HaConfig {
+pub struct HaConfigResponse {
     #[tabled(display = "display_string_vec")]
     pub components: Vec<String>,
     pub config_dir: String,
@@ -21,47 +20,47 @@ pub struct HaConfig {
     pub longitude: f64,
     pub time_zone: String,
     #[tabled(skip)]
-    pub unit_system: UnitSystem,
+    pub unit_system: HaUnitSystem,
     pub version: String,
     #[tabled(display = "display_string_vec")]
     pub whitelist_external_dirs: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Tabled)]
-pub struct UnitSystem {
+pub struct HaUnitSystem {
     pub length: String,
     pub mass: String,
     pub temperature: String,
     pub volume: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Tabled)]
-pub struct Components(#[tabled(display = "string_vec_to_rows")] pub Vec<String>);
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HaComponentsResponse(pub Vec<String>);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Events(pub Vec<EventObject>);
+pub struct HaEventsResponse(pub Vec<HaEvent>);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct EventObject {
+pub struct HaEvent {
     pub event: String,
     pub listener_count: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Services(pub Vec<ServiceObject>);
+pub struct HaServicesResponse(pub Vec<HaService>);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ServiceObject {
+pub struct HaService {
     pub domain: String,
     pub services: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HistoryResponse(pub Vec<Vec<StateChange>>);
+pub struct HaHistoryResponse(pub Vec<Vec<HaStateChange>>);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StateChange {
-    pub attributes: Option<StateChangeAttribute>,
+pub struct HaStateChange {
+    pub attributes: Option<HaStateChangeAttribute>,
     pub entity_id: Option<String>,
     pub last_changed: DateTime<Utc>,
     pub last_updated: Option<DateTime<Utc>>,
@@ -69,13 +68,13 @@ pub struct StateChange {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StateChangeAttribute {
+pub struct HaStateChangeAttribute {
     pub friendly_name: Option<String>,
     pub unit_of_measurement: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HistoryOptions {
+pub struct HaHistoryOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<DateTime<Utc>>,
 
@@ -90,7 +89,7 @@ pub struct HistoryOptions {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HistoryQuery {
+pub struct HaHistoryQuery {
     pub filter_entity_id: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,7 +105,7 @@ pub struct HistoryQuery {
     pub significant_changes_only: bool,
 }
 
-impl HistoryQuery {
+impl HaHistoryQuery {
     pub fn from_default(filter_entity_ids: Vec<String>) -> Self {
         Self {
             filter_entity_id: filter_entity_ids.join(","),
@@ -117,7 +116,7 @@ impl HistoryQuery {
         }
     }
 
-    pub fn from_query_options(value: &HistoryOptions, filter_entity_ids: Vec<String>) -> Self {
+    pub fn from_query_options(value: &HaHistoryOptions, filter_entity_ids: Vec<String>) -> Self {
         Self {
             filter_entity_id: filter_entity_ids.join(","),
             end_time: value.end_time,
@@ -129,10 +128,10 @@ impl HistoryQuery {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LogbookResponse(pub Vec<LogbookEntry>);
+pub struct HaLogbookResponse(pub Vec<HaLogbookEntry>);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LogbookEntry {
+pub struct HaLogbookEntry {
     pub context_user_id: Option<String>,
     pub domain: String,
     pub entity_id: String,
@@ -142,7 +141,7 @@ pub struct LogbookEntry {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LogbookOptions {
+pub struct HaLogbookOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entity: Option<String>,
 
@@ -151,10 +150,10 @@ pub struct LogbookOptions {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StatesResponse(pub Vec<StateObject>);
+pub struct HaStatesResponse(pub Vec<HaState>);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StateObject {
+pub struct HaState {
     pub attributes: HashMap<String, Value>,
     pub entity_id: String,
     pub last_changed: DateTime<Utc>,
@@ -162,13 +161,13 @@ pub struct StateObject {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StateUpdateRequest {
+pub struct HaStateUpdateRequest {
     pub state: String,
     pub attributes: HashMap<String, Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StateUpdateResponse {
+pub struct HaStateUpdateResponse {
     pub attributes: HashMap<String, Value>,
     pub entity_id: String,
     pub last_changed: DateTime<Utc>,
@@ -176,10 +175,10 @@ pub struct StateUpdateResponse {
     pub state: String,
 }
 
-pub type EventData = HashMap<String, String>;
+pub type HaEventData = HashMap<String, String>;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DomainServiceResponse(pub Vec<StateObject>);
+pub struct HaDomainServiceResponse(pub Vec<HaState>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServiceData {
@@ -187,8 +186,8 @@ pub struct ServiceData {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DomainServiceReturnResponse {
-    pub changed_states: Vec<StateObject>,
+pub struct HaDomainServiceReturnResponse {
+    pub changed_states: Vec<HaState>,
     pub service_response: HashMap<String, Value>,
 }
 
@@ -197,5 +196,3 @@ pub struct DomainServiceReturnResponse {
 fn display_string_vec(values: &[String]) -> String {
     values.join(", ")
 }
-
-fn string_vec_to_rows(values: &[String]) -> String {}
