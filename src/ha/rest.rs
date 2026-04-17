@@ -1,11 +1,11 @@
 use std::fmt::format;
 
-use crate::ha::error::HaError;
-use crate::ha::model::{
+use crate::ha::dtos::{
     Components, DomainServiceResponse, DomainServiceReturnResponse, EventData, Events, HaConfig,
     HaMessage, HistoryOptions, HistoryQuery, HistoryResponse, LogbookOptions, LogbookResponse,
     ServiceData, Services, StateObject, StateUpdateRequest, StateUpdateResponse, StatesResponse,
 };
+use crate::ha::error::HaError;
 use crate::ha::routes::{
     COMPONENTS, CONFIG, ERROR_LOG, EVENTS, HISTORY, LOGBOOK, SERVICES, STATES,
 };

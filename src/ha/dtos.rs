@@ -35,8 +35,8 @@ pub struct UnitSystem {
     pub volume: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Components(pub Vec<String>);
+#[derive(Debug, Serialize, Deserialize, Tabled)]
+pub struct Components(#[tabled(display = "string_vec_to_rows")] pub Vec<String>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Events(pub Vec<EventObject>);
@@ -197,3 +197,5 @@ pub struct DomainServiceReturnResponse {
 fn display_string_vec(values: &[String]) -> String {
     values.join(", ")
 }
+
+fn string_vec_to_rows(values: &[String]) -> String {}

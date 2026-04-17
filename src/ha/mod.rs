@@ -1,5 +1,5 @@
+mod dtos;
 pub mod error;
-mod model;
 mod rest;
 mod routes;
 
@@ -8,13 +8,13 @@ use error::HaError;
 use rest::HaRestClient;
 
 use crate::config::SecretIdentifier;
-use crate::ha::model::{
+use crate::ha::dtos::{
     DomainServiceResponse, DomainServiceReturnResponse, EventData, ServiceData, StateObject,
     StateUpdateRequest, StateUpdateResponse,
 };
 use crate::{
     config::ConfigProvider,
-    ha::model::{
+    ha::dtos::{
         Components, Events, HaConfig, HaMessage, HistoryOptions, HistoryResponse, LogbookOptions,
         LogbookResponse, Services, StatesResponse,
     },
